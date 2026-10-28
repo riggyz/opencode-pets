@@ -1,0 +1,28 @@
+.oc-pets { position: fixed; bottom: 12px; z-index: 40; pointer-events: none; font: 12px/1.5 system-ui, sans-serif; color: var(--text-base, #dddfe5); }
+.oc-pets button, .oc-pets input, .oc-pets select, .oc-pets-menu { pointer-events: auto; }
+.oc-pets-sprite { display: block; padding: 0; border: 0; border-radius: 12px; background-color: transparent; background-repeat: no-repeat; image-rendering: pixelated; cursor: grab; touch-action: none; filter: drop-shadow(0 3px 2px #0002); }
+.oc-pets-sprite:active { cursor: grabbing; }
+.oc-pets button:focus-visible, .oc-pets select:focus-visible, .oc-pets input:focus-visible { outline: 2px solid #83ceae; outline-offset: 3px; }
+.oc-pets-settings { position: absolute; top: calc(100% - 7px); left: calc(50% - 14px); width: 28px; height: 20px; padding: 0; border: 1px solid var(--border-weak-base, #ffffff20); border-radius: 10px; background: var(--surface-raised-base, #24262b); color: inherit; cursor: pointer; opacity: 0; }
+.oc-pets:hover .oc-pets-settings, .oc-pets:focus-within .oc-pets-settings { opacity: 1; }
+.oc-pets-menu { position: absolute; bottom: calc(100% + 8px); width: 268px; max-height: min(520px, 65vh); overflow: auto; box-sizing: border-box; padding: 14px; border-radius: 12px; border: 1px solid var(--border-weak-base, #ffffff20); background: var(--surface-raised-base, #24262b); box-shadow: 0 8px 30px #0004; }
+.oc-pets-heading, .oc-pets-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.oc-pets-heading { font-size: 14px; margin-bottom: 10px; }
+.oc-pets-menu label { display: block; margin: 10px 0; }
+.oc-pets-menu select { display: block; width: 100%; margin-top: 4px; background: var(--surface-base, #191b20); color: inherit; border: 1px solid var(--border-weak-base, #ffffff20); border-radius: 6px; padding: 5px; }
+.oc-pets-menu p { margin: 8px 0; opacity: .75; font-size: 11px; }
+.oc-pets-menu input[type=range] { width: 100%; accent-color: #83ceae; }
+.oc-pets-menu .oc-pets-check { display: flex; align-items: center; gap: 7px; }
+.oc-pets-menu input[type=checkbox] { accent-color: #83ceae; }
+.oc-pets-menu button { border: 1px solid var(--border-weak-base, #ffffff20); border-radius: 6px; background: transparent; color: inherit; padding: 4px 8px; cursor: pointer; }
+.oc-pets-menu button:disabled { opacity: .5; cursor: wait; }
+.oc-pets-menu small { display: block; opacity: .55; margin-top: 12px; font-size: 10px; }
+.oc-pets-menu [role=alert] { color: #ffb0aa; overflow-wrap: anywhere; }
+.oc-pets-probe { display: none; }
+.oc-pets[data-guest=true] .oc-pets-sprite { cursor: pointer; }
+.oc-pets[data-leaving=true] button { pointer-events: none; }
+.oc-pets[data-leaving=true] .oc-pets-settings { display: none; }
+.oc-pets-pill { position: absolute; bottom: calc(100% + 5px + var(--hop, 0px)); width: max-content; transform: translateX(-50%); box-sizing: border-box; padding: 6px 8px; border: 1px solid var(--border-weak-base, #ffffff20); border-radius: 12px; background: var(--surface-raised-base, #24262b); box-shadow: 0 3px 12px #0003; font-size: 11px; line-height: 1.4; text-align: center; pointer-events: none; }
+.oc-pets-pill > span, .oc-pets-pill > small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.oc-pets-pill > small { opacity: .65; font-size: 10px; }
+.oc-pets[data-baby=true] .oc-pets-sprite { cursor: pointer; transform: translateY(calc(-1 * var(--hop, 0px))); }
