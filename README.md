@@ -4,6 +4,51 @@ An in-window companion for OpenCode Desktop V2's experimental GUI plugin API.
 Requires the GUI API shipped with OpenCode 2.2.0. No fork, server plugin, AI
 calls, or external pet service is needed.
 
+## Install from GitHub
+
+Requires **OpenCode Desktop 2.2.0 or later** with the compatible experimental GUI
+plugin API. Install globally so Desktop can load the plugin in every window:
+
+```sh
+opencode plugin add github:riggyz/opencode-pets
+```
+
+The repository includes the prebuilt GUI bundle; users do not need to clone the
+repository or run a build. Pets remain inside the OpenCode window.
+
+To pin a published Git tag or commit, append `#<tag-or-commit>` to the GitHub
+package specification. Tags must exist in the repository before installing them.
+Check for and apply updates with:
+
+```sh
+opencode plugin check
+opencode plugin update github:riggyz/opencode-pets
+```
+
+To remove the plugin:
+
+```sh
+opencode plugin remove github:riggyz/opencode-pets
+```
+
+## Distribution
+
+`package.json` exports `dist/gui-experimental.cjs`, which is committed so GitHub
+installations work without install-time build scripts. After changing plugin
+source, rebuild and include the updated bundle in the same commit:
+
+```sh
+npm ci
+npm test
+npm run typecheck
+npm run build
+npm pack --dry-run
+```
+
+Push the source and bundle together before advertising an updated GitHub install
+or creating a release tag. `private: true` prevents accidental npm publishing; it
+does not prevent GitHub installs. User-installed Codex pets are not bundled.
+
 ## Develop and load
 
 ```sh
