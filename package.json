@@ -15,7 +15,9 @@
     "preview": "vite --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/*.test.ts",
-    "generate:pet": "tsx scripts/generate-pet.ts"
+    "generate:pet": "tsx scripts/generate-pet.ts",
+    "preversion": "npm test && npm run typecheck",
+    "version": "npm run build && git add dist/gui-experimental.cjs"
   },
   "dependencies": {
     "@opencode/plugin": "2.2.0",
