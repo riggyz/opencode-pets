@@ -5,6 +5,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import sharp from "sharp"
 import { imageSize, loadCatalog, loadPet } from "./catalog"
+import { actions, frameCounts } from "./pet"
 
 const image = await readFile(new URL("../assets/byte/spritesheet.png", import.meta.url))
 const manifest = { id: "test-cat", displayName: "Test Cat", spritesheetPath: "spritesheet.png" }
@@ -14,6 +15,33 @@ test("loads the bundled original as a real Codex pet folder", async () => {
   assert.equal(pet.id, "byte")
   assert.match(pet.image, /^data:image\/png;base64,/)
   assert.deepEqual(imageSize(image), { width: 1536, height: 1872 })
+})
+
+test("all five built-in pet folders have valid manifests and decodable atlases", async () => {
+  const catalog = await loadCatalog([new URL("../assets/", import.meta.url).pathname])
+  assert.deepEqual(catalog.errors, [])
+  assert.deepEqual(catalog.pets.map(pet => pet.id), ["byte", "euromoji", "shrocket", "thurmble", "unicorn"])
+  assert.equal(new Set(catalog.pets.map(pet => pet.id)).size, 5)
+  for (const pet of catalog.pets) {
+    assert.equal(pet.spriteVersionNumber, pet.id === "byte" ? 1 : 2)
+    const bytes = Buffer.from(pet.image.split(",")[1], "base64")
+    const metadata = await sharp(bytes).metadata()
+    assert.equal(metadata.width, 1536)
+    assert.equal(metadata.height, pet.id === "byte" ? 1872 : 2288)
+    assert.equal(metadata.hasAlpha, true)
+    const { data, info } = await sharp(bytes).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+    const cells = actions.flatMap((action, row) => Array.from({ length: frameCounts[action] }, (_, column) => ({ row, column })))
+    if (pet.spriteVersionNumber === 2) cells.push(...Array.from({ length: 16 }, (_, index) => ({ row: 9 + Math.floor(index / 8), column: index % 8 })))
+    for (const { row, column } of cells) {
+      let visible = false
+      for (let y = row * 208; y < (row + 1) * 208 && !visible; y++) {
+        for (let x = column * 192; x < (column + 1) * 192; x++) {
+          if (data[(y * info.width + x) * 4 + 3] > 0) { visible = true; break }
+        }
+      }
+      assert.ok(visible, `${pet.id}: blank animation cell at row ${row}, column ${column}`)
+    }
+  }
 })
 
 test("catalog tolerates missing roots, isolates bad pets, deduplicates, and blocks symlink escapes", async () => {

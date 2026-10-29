@@ -1,0 +1,7 @@
+{
+  "id": "unicorn",
+  "displayName": "Unicorn",
+  "description": "A transforming white mecha helmet.",
+  "spriteVersionNumber": 2,
+  "spritesheetPath": "spritesheet.webp"
+}

@@ -3,8 +3,8 @@ import { batch, createSignal, For } from "solid-js"
 import { Colony } from "./colony"
 import type { Preferences } from "./companion"
 import type { SessionPet } from "./sessions"
-import { actionLabels, actions, type Action, type Pet } from "./pet"
-import image from "../assets/byte/spritesheet.png?inline"
+import { actionLabels, actions, type Action } from "./pet"
+import { builtins } from "./builtins"
 import "./pets.css"
 
 // Renders the real colony with independently controllable session fixtures.
@@ -23,7 +23,6 @@ function Preview() {
   const acknowledge = (session: SessionPet) => {
     if (session.activity === "review" || session.activity === "failed") update(session.key, "idle")
   }
-  const pet: Pet = { key: "builtin:byte", source: "Built in", id: "byte", displayName: "Byte", description: "An original little charcoal cat with mint eyes.", spriteVersionNumber: 1, spritesheetPath: "spritesheet.png", image }
   return <>
     <main style="max-width:640px;margin:10vh auto;padding:24px">
       <p style="color:#83ceae;font-size:12px;letter-spacing:2px">OPENCODE PETS · COLONY PREVIEW</p>
@@ -53,10 +52,10 @@ function Preview() {
         <p style="padding:12px;color:#9296a0">{inputKind()} fixture · center stays clear</p>
       </div>
     </div>
-    <Colony pets={[pet]} preferences={prefs()} update={change => setPrefs(value => ({ ...value, ...change }))}
+    <Colony pets={builtins} preferences={prefs()} update={change => setPrefs(value => ({ ...value, ...change }))}
       sessions={sessions()} residentKey={current()} acknowledge={acknowledge}
       open={session => batch(() => { acknowledge(session); setCurrent(session.key) })}
-      refresh={async () => ({ pets: [pet], errors: [] })} />
+      refresh={async () => ({ pets: builtins, errors: [] })} />
   </>
 }
 render(() => <Preview />, document.getElementById("app")!)

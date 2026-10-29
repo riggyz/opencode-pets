@@ -9,25 +9,19 @@ import { loadCatalog } from "./catalog"
 import { initialActivity, reduceActivity, type ActivityState } from "./activity"
 import { collectSessions, sessionCandidates, sessionKey, sessionRoot, type SessionPet } from "./sessions"
 import type { Pet } from "./pet"
-import image from "../assets/byte/spritesheet.png?inline"
+import { builtins } from "./builtins"
 import css from "./pets.css?inline"
-
-const byte: Pet = {
-  key: "builtin:byte", source: "Built in", id: "byte", displayName: "Byte",
-  description: "A little charcoal cat with mint eyes.", spriteVersionNumber: 1,
-  spritesheetPath: "spritesheet.png", image,
-}
 
 export default Plugin.define({
   stores: {
     prefs: Store.global(Schema.Struct({ enabled: Schema.Boolean, selected: Schema.String, size: Schema.Number, roam: Schema.Boolean }), { enabled: true, selected: "builtin:byte", size: 96, roam: true }),
   },
   setup(ctx) {
-    const [pets, setPets] = createSignal<Pet[]>([byte])
+    const [pets, setPets] = createSignal<Pet[]>(builtins)
     const prefs = ctx.stores.prefs
     const refresh = async () => {
       const catalog = await ctx.main(Pets).list()
-      if (!ctx.signal.aborted) setPets([byte, ...catalog.pets])
+      if (!ctx.signal.aborted) setPets([...builtins, ...catalog.pets])
       return { pets: [...catalog.pets], errors: [...catalog.errors] }
     }
     void refresh().catch(error => console.warn("Pets: could not read custom pets", error))

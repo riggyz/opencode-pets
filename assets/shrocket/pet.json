@@ -1,0 +1,7 @@
+{
+  "id": "shrocket",
+  "displayName": "Shrocket",
+  "description": "A colorful shark-shaped rocket.",
+  "spriteVersionNumber": 2,
+  "spritesheetPath": "spritesheet.webp"
+}

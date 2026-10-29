@@ -16,6 +16,11 @@ opencode plugin add github:riggyz/opencode-pets
 The repository includes the prebuilt GUI bundle; users do not need to clone the
 repository or run a build. Pets remain inside the OpenCode window.
 
+Five pets are included: **Byte**, **Euromoji** (hatchback), **Shrocket** (shark
+rocket), **Thurmble** (turtle), and **Unicorn** (mecha helmet). They are available
+offline immediately after installation and participate in session-name-based
+pet selection. Local Codex-compatible pets can still be added alongside them.
+
 To pin a published Git tag or commit, append `#<tag-or-commit>` to the GitHub
 package specification. Tags must exist in the repository before installing them.
 Check for and apply updates with:
@@ -196,9 +201,12 @@ used. No sound or OS notifications are sent; those belong in a separate plugin.
 Only JSON and image bytes are read, never scripts from pet folders. Asset paths
 must stay inside their pet folder, including after symlink resolution. Images
 are capped at 20 MiB. Invalid packages are skipped and reported on refresh.
-Custom assets remain subject to their authors' licenses; none are downloaded
-or bundled. Byte and its generator are original assets created for this plugin.
-The bundled Byte package can also be copied directly into Codex's pet folder.
+User-installed custom assets remain subject to their authors' licenses; they
+are not downloaded or copied into the plugin. Byte and its generator are original
+assets created for this plugin. The four additional default sprite sheets were
+supplied for inclusion in this project. Each folder under `assets/` is also a
+Codex-compatible pet package. The additional defaults use lossless WebP atlases
+to reduce the shipped bundle size without changing their visible pixels.
 
 ## Verify
 
