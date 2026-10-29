@@ -55,25 +55,22 @@ or creating a release tag.
 
 ### Release a version
 
-Run the **Release** workflow from the GitHub Actions tab on `main` and choose
-`patch`, `minor`, or `major`. It performs the steps below and creates a GitHub
-Release for the new tag.
+`main` only accepts changes through pull requests, so releases go through one:
 
-To release locally instead, from a clean `main`, bump the version. This runs tests and typecheck, rebuilds
-the bundle, then commits `package.json`, the lockfile, and the bundle as
-`vX.Y.Z` and creates a matching `vX.Y.Z` tag:
-
-```sh
-npm version patch   # or minor / major / 1.2.3
-git push --follow-tags
-```
+1. Run the **Release** workflow from the GitHub Actions tab on `main` and choose
+   `patch`, `minor`, or `major`. It runs tests and typecheck, bumps the version,
+   rebuilds the bundle, and opens a `chore(release): vX.Y.Z` pull request.
+2. Merge that pull request. The **Publish release** workflow tags the merged
+   commit as `vX.Y.Z` and creates the GitHub Release.
 
 Users can then install or pin that release:
 
 ```sh
 opencode plugin add github:riggyz/opencode-pets#v0.1.1
-``` `private: true` prevents accidental npm publishing; it
-does not prevent GitHub installs. User-installed Codex pets are not bundled.
+```
+
+`private: true` prevents accidental npm publishing; it does not prevent GitHub
+installs. User-installed Codex pets are not bundled.
 
 ## Develop and load
 

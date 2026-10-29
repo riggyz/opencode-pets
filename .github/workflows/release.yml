@@ -14,19 +14,18 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: release
   cancel-in-progress: false
 
 jobs:
-  release:
+  prepare:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -40,24 +39,30 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
 
-      - name: Bump version, build, commit, and tag
+      - name: Bump version and rebuild
         id: version
+        env:
+          BUMP: ${{ inputs.bump }}
         run: |
-          npm version "${{ inputs.bump }}" -m "chore(release): %s"
+          npm version "$BUMP" --no-git-tag-version
           echo "tag=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
-      - name: Push commit and tag
-        run: git push --follow-tags origin HEAD:main
-
-      - name: Create GitHub release
+      - name: Open release pull request
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
         run: |
-          gh release create "${{ steps.version.outputs.tag }}" \
-            --title "${{ steps.version.outputs.tag }}" \
-            --generate-notes \
-            --notes "Install with:
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" > /dev/null; then
+            echo "::error::Tag $TAG already exists"
+            exit 1
+          fi
+          branch="release/$TAG"
+          git switch -c "$branch"
+          git add package.json package-lock.json dist/gui-experimental.cjs
+          git commit -m "chore(release): $TAG"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" \
+            --title "chore(release): $TAG" \
+            --body "Bumps the plugin to \`$TAG\` and rebuilds \`dist/gui-experimental.cjs\`.
 
-          \`\`\`sh
-          opencode plugin add github:${{ github.repository }}#${{ steps.version.outputs.tag }}
-          \`\`\`"
+          Merging this pull request tags the merged commit as \`$TAG\` and creates the GitHub Release."
