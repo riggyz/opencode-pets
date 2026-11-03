@@ -10,11 +10,13 @@ import { initialActivity, reduceActivity, type ActivityState } from "./activity"
 import { collectSessions, sessionCandidates, sessionKey, sessionRoot, type SessionPet } from "./sessions"
 import type { Pet } from "./pet"
 import { builtins } from "./builtins"
+import { selectChatPet } from "./selection"
 import css from "./pets.css?inline"
 
 export default Plugin.define({
   stores: {
     prefs: Store.global(Schema.Struct({ enabled: Schema.Boolean, selected: Schema.String, size: Schema.Number, roam: Schema.Boolean }), { enabled: true, selected: "builtin:byte", size: 96, roam: true }),
+    chatPets: Store.global(Schema.Record(Schema.String, Schema.String), {}),
   },
   setup(ctx) {
     const [pets, setPets] = createSignal<Pet[]>(builtins)
@@ -114,6 +116,7 @@ export default Plugin.define({
       })
       return <Show when={allowed() && prefs.value.enabled}>
         <Colony pets={pets()} preferences={prefs.value} sessions={sessions()} residentKey={residentKey()}
+          chatPets={ctx.stores.chatPets.value} selectChatPet={(key, pet) => ctx.stores.chatPets.update(draft => { selectChatPet(draft, key, pet) })}
           acknowledge={acknowledge} open={session => { acknowledge(session); ctx.tabs.open({ server: session.server, id: session.id }, { focus: true }) }}
           update={change => prefs.update(draft => { Object.assign(draft, change) })} refresh={refresh} />
       </Show>
