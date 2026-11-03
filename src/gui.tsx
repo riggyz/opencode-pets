@@ -32,6 +32,7 @@ export default Plugin.define({
     const acknowledgers = new Map<string, (id: string) => void>()
     const servers = mapArray(() => ctx.servers.list(), serverID => {
       createKeyed(() => {
+        if (!prefs.value.enabled || !allowed()) return undefined
         const server = ctx.servers.get(serverID)
         return server?.connected ? server.data : undefined
       }, data => {
@@ -68,6 +69,13 @@ export default Plugin.define({
         const unsubscribe = data.listen(({ details }) => {
           if (!details.data || typeof details.data !== "object" || !("sessionID" in details.data) || typeof details.data.sessionID !== "string") return
           const id = details.data.sessionID
+          if (details.type === "session.deleted" || details.type === "session.archived") {
+            requested.delete(id)
+            clearTimeout(expiry.get(id))
+            expiry.delete(id)
+            if (id in states()) setStates(({ [id]: _, ...rest }) => rest)
+            return
+          }
           const previous = states()[id] ?? initialActivity
           const next = reduceActivity(previous, details, id, Date.now())
           if (next === previous) return
