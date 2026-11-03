@@ -2,6 +2,7 @@ import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show }
 import { actionLabels, animationFrame, companionAction, frameDurations, lookDirection, lookPosition, rowCount, spritePosition, type Action, type Catalog, type Pet } from "./pet"
 import { babyPetSize, departureStep, followerTarget, guestPosition, sessionPill, type SessionBaby } from "./sessions"
 import { babyHop, laneBounds, lanePosition } from "./layout"
+import { subscribeAnimation } from "./clock"
 
 export interface Preferences {
   enabled: boolean
@@ -38,7 +39,6 @@ export function Companion(props: {
   const [heading, setHeading] = createSignal(-1)
   const [hovered, setHovered] = createSignal(false)
   const [reduced, setReduced] = createSignal(false)
-  const [visible, setVisible] = createSignal(!document.hidden)
   const [menu, setMenu] = createSignal(false)
   const [play, setPlay] = createSignal<Action>()
   const [walking, setWalking] = createSignal<Action>()
@@ -49,6 +49,9 @@ export function Companion(props: {
   const [looking, setLooking] = createSignal(false)
   const pet = createMemo(() => props.pets.find(p => p.key === props.preferences.selected) ?? props.pets[0])
   createEffect(() => { pet()?.key; setImageError(""); setElapsed(0) })
+  // Atlases are multi-megabyte data URLs. Building this string inside the per-frame
+  // render effect allocated (and compared) a fresh copy on every animation tick.
+  const background = createMemo(() => `url("${pet()?.image ?? ""}")`)
   const action = createMemo(() => props.guest?.leaving ? departureStep(x(), width(), props.preferences.size, 0).action : props.follow ? play() ?? walking() ?? props.activity : companionAction(props.activity, play(), walking()))
   const babyKeys = createMemo(() => (props.babies ?? []).map(baby => baby.key))
   let lastX = x()
@@ -94,7 +97,6 @@ export function Companion(props: {
     const motion = matchMedia("(prefers-reduced-motion: reduce)")
     const resize = () => setWidth(window.innerWidth)
     const motionChanged = () => setReduced(motion.matches)
-    const visibility = () => setVisible(!document.hidden)
     const pointerMoved = (event: PointerEvent) => {
       if (motion.matches || drag || event.pointerType === "touch") return
       setPointer({ x: event.clientX, y: event.clientY, at: performance.now() })
@@ -104,15 +106,8 @@ export function Companion(props: {
     motionChanged()
     motion.addEventListener("change", motionChanged)
     window.addEventListener("resize", resize)
-    document.addEventListener("visibilitychange", visibility)
-    window.addEventListener("pointermove", pointerMoved, { passive: true })
-    document.addEventListener("pointerleave", pointerLeft)
-    let previous = performance.now()
-    const timer = setInterval(() => {
-      const now = performance.now()
-      const delta = Math.min(200, now - previous)
-      previous = now
-      if (!visible() || !props.preferences.enabled) return
+    const unsubscribe = subscribeAnimation({ pointer: pointerMoved, leave: pointerLeft, tick: (now, delta) => {
+      if (!props.preferences.enabled) return
       if (props.follow) {
         setHop(reduced() ? 0 : babyHop(now, props.follow.index))
         const distance = target() - x()
@@ -148,16 +143,13 @@ export function Companion(props: {
       if (next === x()) direction *= -1
       setX(next)
       setWalking(direction === 1 ? "running-right" : "running-left")
-    }, 50)
+    } })
     if (props.activity === "idle") react("waving")
     onCleanup(() => {
-      clearInterval(timer)
+      unsubscribe()
       clearTimeout(reset)
       motion.removeEventListener("change", motionChanged)
       window.removeEventListener("resize", resize)
-      document.removeEventListener("visibilitychange", visibility)
-      window.removeEventListener("pointermove", pointerMoved)
-      document.removeEventListener("pointerleave", pointerLeft)
     })
   })
 
@@ -204,7 +196,7 @@ export function Companion(props: {
         </section>
       </Show>
       <button class="oc-pets-sprite" aria-label={props.follow ? `Subagent: ${props.label}` : props.guest ? `Open session: ${props.label}` : `Pet ${current().displayName}: ${props.label || "Your companion"}`} disabled={props.guest?.leaving}
-        style={{ width: `${props.preferences.size}px`, height: `${props.preferences.size * 208 / 192}px`, "background-image": `url("${current().image}")`, "background-size": `800% ${rowCount(current().spriteVersionNumber) * 100}%`, "background-position": look() !== undefined ? lookPosition(look()!) : spritePosition(action(), reduced() ? 0 : animationFrame(action(), elapsed()), current().spriteVersionNumber) }}
+        style={{ width: `${props.preferences.size}px`, height: `${props.preferences.size * 208 / 192}px`, "background-image": background(), "background-size": `800% ${rowCount(current().spriteVersionNumber) * 100}%`, "background-position": look() !== undefined ? lookPosition(look()!) : spritePosition(action(), reduced() ? 0 : animationFrame(action(), elapsed()), current().spriteVersionNumber) }}
         onContextMenu={event => { event.preventDefault(); if (!props.follow) setMenu(value => !value) }}
         onPointerEnter={() => { setHovered(true); hoverPet() }} onPointerLeave={() => setHovered(false)}
         onFocus={() => { setHovered(true); hoverPet() }} onBlur={() => setHovered(false)}

@@ -1,5 +1,5 @@
 import { render } from "solid-js/web"
-import { batch, createEffect, createSignal, For } from "solid-js"
+import { batch, createEffect, createSignal, For, Show } from "solid-js"
 import { Colony } from "./colony"
 import type { Preferences } from "./companion"
 import type { SessionPet } from "./sessions"
@@ -60,11 +60,11 @@ function Preview() {
         <p style="padding:12px;color:#9296a0">{inputKind()} fixture · center stays clear</p>
       </div>
     </div>
-    <Colony pets={builtins} preferences={prefs()} update={change => setPrefs(value => ({ ...value, ...change }))}
+    <Show when={prefs().enabled}><Colony pets={builtins} preferences={prefs()} update={change => setPrefs(value => ({ ...value, ...change }))}
       chatPets={chatPets()} selectChatPet={(key, pet) => setChatPets(previous => { const next = { ...previous }; selectChatPet(next, key, pet); return next })}
       sessions={sessions()} residentKey={current()} acknowledge={acknowledge}
       open={session => batch(() => { acknowledge(session); setCurrent(session.key) })}
-      refresh={async () => ({ pets: builtins, errors: [] })} />
+      refresh={async () => ({ pets: builtins, errors: [] })} /></Show>
   </>
 }
 render(() => <Preview />, document.getElementById("app")!)
