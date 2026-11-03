@@ -1,14 +1,22 @@
 import { render } from "solid-js/web"
-import { batch, createSignal, For } from "solid-js"
+import { batch, createEffect, createSignal, For } from "solid-js"
 import { Colony } from "./colony"
 import type { Preferences } from "./companion"
 import type { SessionPet } from "./sessions"
 import { actionLabels, actions, type Action } from "./pet"
 import { builtins } from "./builtins"
+import { selectChatPet, type ChatPetSelections } from "./selection"
 import "./pets.css"
 
 // Renders the real colony with independently controllable session fixtures.
 function Preview() {
+  let saved: ChatPetSelections = {}
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem("riggyz-pets.preview.chatPets") ?? "{}")
+    if (value && typeof value === "object" && !Array.isArray(value)) saved = Object.fromEntries(Object.entries(value).filter(([, pet]) => typeof pet === "string"))
+  } catch { /* Invalid preview-only storage should fall back to automatic. */ }
+  const [chatPets, setChatPets] = createSignal<ChatPetSelections>(saved)
+  createEffect(() => localStorage.setItem("riggyz-pets.preview.chatPets", JSON.stringify(chatPets())))
   const [prefs, setPrefs] = createSignal<Preferences>({ enabled: true, selected: "builtin:byte", size: 96, roam: true })
   const [current, setCurrent] = createSignal("preview\nmain")
   const [composerHeight, setComposerHeight] = createSignal(110)
@@ -53,6 +61,7 @@ function Preview() {
       </div>
     </div>
     <Colony pets={builtins} preferences={prefs()} update={change => setPrefs(value => ({ ...value, ...change }))}
+      chatPets={chatPets()} selectChatPet={(key, pet) => setChatPets(previous => { const next = { ...previous }; selectChatPet(next, key, pet); return next })}
       sessions={sessions()} residentKey={current()} acknowledge={acknowledge}
       open={session => batch(() => { acknowledge(session); setCurrent(session.key) })}
       refresh={async () => ({ pets: builtins, errors: [] })} />

@@ -1,13 +1,15 @@
 import { createEffect, createMemo, createSignal, For, Show } from "solid-js"
 import { Companion, type Preferences } from "./companion"
 import { reconcileColony, sessionPill, type GuestPet, type SessionPet } from "./sessions"
-import { sessionPet } from "./layout"
+import { chatPet, type ChatPetSelections } from "./selection"
 import { createPetPlane } from "./plane"
 import type { Catalog, Pet } from "./pet"
 
 export function Colony(props: {
   pets: Pet[]
   preferences: Preferences
+  chatPets: ChatPetSelections
+  selectChatPet: (key: string, pet: string | undefined) => void
   update: (change: Partial<Preferences>) => void
   refresh: () => Promise<Catalog>
   sessions: SessionPet[]
@@ -34,8 +36,9 @@ export function Colony(props: {
       const initial = families().find(item => item.session.key === key)!
       const family = () => families().find(item => item.session.key === key) ?? initial
       const current = () => props.residentKey === key
-      const assignedPreferences = () => ({ ...preferences(), selected: sessionPet(family().session.title, props.pets)?.key ?? props.preferences.selected })
-      return <Companion pets={props.pets} preferences={assignedPreferences()} bottom={plane.bottom()} autoPet homeIndex={index()}
+      const assignedPreferences = () => ({ ...preferences(), selected: chatPet(key, family().session.title, props.pets, props.chatPets)?.key ?? props.preferences.selected })
+      return <Companion pets={props.pets} preferences={assignedPreferences()} bottom={plane.bottom()} homeIndex={index()}
+        chatSelection={{ selected: props.chatPets[key], select: pet => props.selectChatPet(key, pet) }}
         babies={family().leaving ? [] : family().session.subagents} pill={sessionPill(family().session.title, family().session.project)}
         activity={family().session.activity} sessionKey={key} label={`${family().session.title} · ${family().session.project}`}
         guest={current() && !family().leaving ? undefined : { index: index(), count: families().length, leaving: family().leaving }}

@@ -115,8 +115,14 @@ Do not restart the service to apply changes.
   phased sine-wave ripple. Reduced motion disables the ripple.
 - Each root chat gets a deterministic pet from its full session name and the
   available catalog, independent of catalog order. Babies inherit that sprite.
-  Renaming a session or changing the catalog can change its assigned pet. The
-  manual picker applies only to the fallback companion on Home.
+  Renaming a session or changing the catalog can change its automatically assigned
+  pet. To override this, right-click a chat's pet (or click **···**) and choose
+  **Chat pet**. The choice is saved for that root chat across renames, tab changes,
+  and reloads; its subagent babies inherit it. Background-chat pets have the same
+  picker. Choose **Automatic (from chat name)** to clear only that chat's override.
+  The Home **Companion** picker remains independent. If a selected pet is missing,
+  the chat temporarily uses automatic assignment and restores the selection when
+  the pet becomes available again.
 - Positions belong to the window-wide colony. Switching chats changes which
   family is current without remounting or repositioning it. Pets occupy the
   outer thirds of the window; dragging and wandering also keep the center clear.

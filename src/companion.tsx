@@ -19,7 +19,7 @@ export function Companion(props: {
   pill?: { title: string; project: string }
   bottom?: number
   homeIndex?: number
-  autoPet?: boolean
+  chatSelection?: { selected: string | undefined; select: (pet: string | undefined) => void }
   openParent?: () => void
   babies?: SessionBaby[]
   follow?: { x: number; size: number; heading: number; index: number; count: number }
@@ -48,6 +48,7 @@ export function Companion(props: {
   const [pointer, setPointer] = createSignal<{ x: number; y: number; at: number }>()
   const [looking, setLooking] = createSignal(false)
   const pet = createMemo(() => props.pets.find(p => p.key === props.preferences.selected) ?? props.pets[0])
+  createEffect(() => { pet()?.key; setImageError(""); setElapsed(0) })
   const action = createMemo(() => props.guest?.leaving ? departureStep(x(), width(), props.preferences.size, 0).action : props.follow ? play() ?? walking() ?? props.activity : companionAction(props.activity, play(), walking()))
   const babyKeys = createMemo(() => (props.babies ?? []).map(baby => baby.key))
   let lastX = x()
@@ -174,13 +175,23 @@ export function Companion(props: {
           <div class="oc-pets-heading"><strong>{props.guest ? "Guest session" : "Pets"}</strong><button aria-label="Close pet settings" onClick={() => setMenu(false)}>×</button></div>
           <p>{props.label}</p>
           <p role="status">State: {actionLabels[props.activity]}{status() !== actionLabels[props.activity] ? ` · ${status()}` : ""}</p>
+          <Show when={props.chatSelection}>{selection => <>
+            <label>Chat pet<select aria-label="Chat pet" value={selection().selected ?? ""} onChange={event => selection().select(event.currentTarget.value || undefined)}>
+              <option value="">Automatic (from chat name)</option>
+              <Show when={selection().selected && !props.pets.some(item => item.key === selection().selected)}>
+                <option value={selection().selected} disabled>Unavailable pet (using automatic)</option>
+              </Show>
+              <For each={props.pets}>{item => <option value={item.key}>{item.displayName}</option>}</For>
+            </select></label>
+            <p>Saved for this chat. Subagents inherit this pet.</p>
+          </>}</Show>
+          <p>{current().description}</p>
           <Show when={!props.guest}>
-          <Show when={!props.autoPet} fallback={<p>Companion assigned from this session's name.</p>}>
+          <Show when={!props.chatSelection}>
           <label>Companion<select value={current().key} onChange={event => { props.update({ selected: event.currentTarget.value }); setImageError("") }}>
             <For each={props.pets}>{item => <option value={item.key}>{item.displayName}</option>}</For>
           </select></label>
           </Show>
-          <p>{current().description}</p>
           <label>Size <input aria-label="Pet size" type="range" min="64" max="160" step="8" value={props.preferences.size} onInput={event => props.update({ size: Number(event.currentTarget.value) })} /></label>
            <label class="oc-pets-check"><input type="checkbox" checked={props.preferences.roam} onChange={event => props.update({ roam: event.currentTarget.checked })} /> Wander along the side lanes</label>
           <div class="oc-pets-actions"><button disabled={loading()} onClick={() => void refresh()}>{loading() ? "Refreshing…" : "Refresh pets"}</button><button onClick={() => props.update({ enabled: false })}>Hide pet</button></div>
